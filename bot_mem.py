@@ -4,7 +4,7 @@ import logging
 import requests
 import telebot
 from telebot import types
-from openai import OpenAI
+import openai
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 
@@ -17,9 +17,11 @@ telebot.logger.setLevel(logging.WARNING)
 try:
     TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
     OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+    openai.api_key = OPENAI_API_KEY
 except KeyError as e:
     logging.error(f"Falta variable de entorno: {e}. Revísalas en tu panel (Ereku/Heroku).")
     raise
+
 
 SYSTEM_PROMPT_BASE = os.environ.get(
     "SYSTEM_PROMPT",
@@ -408,4 +410,5 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
