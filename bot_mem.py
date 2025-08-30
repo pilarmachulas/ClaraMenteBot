@@ -7,6 +7,8 @@ from telebot import types
 import openai
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
+import time
+import traceback
 
 # ============ LOGGING ============
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -364,17 +366,49 @@ def on_text(m):
             f"tema_principal={tema}, etapa={ud['etapa']}, email={'sí' if ud['email'] else 'no'}."
         )
 
+        import time
+import traceback
+
+# ...
+# dentro de on_text(m), justo donde llamamos a GPT:
+user_text = (m.text or "").strip()
+# capamos entradas gigantes para evitar cortes
+if len(user_text) > 1000:
+    user_text = user_text[:1000] + "…"
+
+messages = [
+    {"role": "system", "content": system_prompt},
+    {"role": "system", "content": persona_context},
+    {"role": "user", "content": user_text},
+]
+
+last_err = None
+for attempt in range(3):  # hasta 3 intentos con backoff
+    try:
         completion = openai.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "system", "content": persona_context},
-                {"role": "user", "content": m.text},
-            ],
+            messages=messages,
             temperature=0.6,
-            max_tokens=400
+            max_tokens=400,
+            timeout=20,          # evita que quede colgado mucho tiempo
         )
         answer = completion.choices[0].message.content.strip()
+        bot.reply_to(m, answer)
+        break
+    except Exception as e:
+        last_err = e
+        logging.error(f"[GPT ERROR][try {attempt+1}/3] {repr(e)}\n{traceback.format_exc()}")
+        # backoff progresivo
+        time.sleep(1.5 * (attempt + 1))
+else:
+    # si después de 3 intentos no salió, avisamos amable
+    lang = (get_ud(m.chat.id).get("idioma") or "ES")
+    bot.reply_to(
+        m,
+        "Tuve un problemita al pensar 🤯. Probemos de nuevo en un momento."
+        if lang == "ES" else
+        "Tive um probleminha para pensar 🤯. Vamos tentar novamente em instantes."
+    )
         bot.reply_to(m, answer)
     except Exception:
         logging.exception("Error generando respuesta con OpenAI")
@@ -409,6 +443,7 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
 
