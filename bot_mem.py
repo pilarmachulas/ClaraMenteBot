@@ -40,7 +40,6 @@ MAILER_WEBHOOK_URL = os.environ.get("MAILER_WEBHOOK_URL")  # ejemplo: https://ho
 
 # ============ CLIENTES ============
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="Markdown")
-client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ============ PERSISTENCIA ============
 DB_PATH = os.environ.get("USERS_DB_PATH", "usuarios.json")
@@ -365,7 +364,7 @@ def on_text(m):
             f"tema_principal={tema}, etapa={ud['etapa']}, email={'sí' if ud['email'] else 'no'}."
         )
 
-        completion = client.chat.completions.create(
+        completion = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -410,5 +409,6 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
