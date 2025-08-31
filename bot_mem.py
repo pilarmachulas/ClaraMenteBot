@@ -380,14 +380,14 @@ messages = [
 ]
 
 last_err = None
-for attempt in range(3):  # hasta 3 intentos con backoff
+for attempt in range(3):
     try:
         completion = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=messages,
             temperature=0.6,
             max_tokens=400,
-            timeout=20,          # evita que quede colgado mucho tiempo
+            timeout=20,
         )
         answer = completion.choices[0].message.content.strip()
         bot.reply_to(m, answer)
@@ -395,10 +395,9 @@ for attempt in range(3):  # hasta 3 intentos con backoff
     except Exception as e:
         last_err = e
         logging.error(f"[GPT ERROR][try {attempt+1}/3] {repr(e)}\n{traceback.format_exc()}")
-        # backoff progresivo
         time.sleep(1.5 * (attempt + 1))
+# <- ojo aquí, este else ya no está dentro del try/except, sino del for
 else:
-    # si después de 3 intentos no salió, avisamos amable
     lang = (get_ud(m.chat.id).get("idioma") or "ES")
     bot.reply_to(
         m,
@@ -440,6 +439,7 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
 
