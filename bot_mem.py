@@ -361,20 +361,18 @@ def on_text(m):
             "\nResponda **em português**, curto (2–4 frases), tom caloroso e claro. Personalize usando o nome quando fizer sentido."
         )
 
-        persona_context = (
-            f"Contexto de usuaria: nombre={nombre}, edad={ud['edad']}, rol={rol}, "
-            f"tema_principal={tema}, etapa={ud['etapa']}, email={'sí' if ud['email'] else 'no'}."
-        )
-
-        import time
-import traceback
+        contexto_persona = (
+    f"Contexto de usuaria: nombre={nombre}, edad={tú['edad']}, rol={rol}, "
+    f"tema_principal={tema}, etapa={tú['etapa']}, correo electrónico={'sí' if tú['correo electrónico'] else 'no'}."
+)
 
 # ...
 # dentro de on_text(m), justo donde llamamos a GPT:
-user_text = (m.text or "").strip()
-# capamos entradas gigantes para evitar cortes
-if len(user_text) > 1000:
-    user_text = user_text[:1000] + "…"
+texto_de_usuario = (metro.texto o "").banda()
+#capamos entradas gigantes para evitar cortes
+si len(texto_de_usuario) > 1000:
+    texto_de_usuario = texto_de_usuario[:1000] + "…"
+
 
 messages = [
     {"role": "system", "content": system_prompt},
@@ -443,6 +441,7 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
 
