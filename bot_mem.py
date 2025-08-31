@@ -375,11 +375,11 @@ user_text = (m.text or "").strip()
 if len(user_text) > 1000:
     user_text = user_text[:1000] + "…"
 
-# 3) Mensajes para el modelo
+    # 3) Mensajes para el modelo
 messages = [
     {"role": "system", "content": system_prompt},
     {"role": "system", "content": persona_context},
-    {"role": "user",   "content": user_text},
+    {"role": "user", "content": user_text},
 ]
 
 last_err = None
@@ -398,11 +398,11 @@ for attempt in range(3):  # hasta 3 intentos con backoff
 
     except Exception as e:
         last_err = e
-        logging.error(f"[GPT ERROR][try {attempt+1}/3] {repr(e)}")
+        logging.error(f"[GPT ERROR][try {attempt+1}/3] {repr(e)}\n{traceback.format_exc()}")
         time.sleep(1.5 * (attempt + 1))  # backoff progresivo
 
 else:
-    # <- este else va alineado con el for, no con el try
+    # <- este else ya está alineado con el for, no con el try
     lang = (get_ud(m.chat.id).get("idioma") or "ES")
     if lang == "ES":
         bot.reply_to(m, "Tuve un problemita al pensar 🤯. Probemos de nuevo en un momento.")
@@ -435,6 +435,7 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
 
