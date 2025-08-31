@@ -361,23 +361,22 @@ def on_text(m):
             "\nResponda **em português**, curto (2–4 frases), tom caloroso e claro. Personalize usando o nome quando fizer sentido."
         )
 
-        contexto_persona = (
-    f"Contexto de usuaria: nombre={nombre}, edad={tú['edad']}, rol={rol}, "
-    f"tema_principal={tema}, etapa={tú['etapa']}, correo electrónico={'sí' if tú['correo electrónico'] else 'no'}."
+        # 1) Asegura que el nombre del contexto sea el mismo que usas abajo
+persona_context = (
+    f"Contexto de usuaria: nombre={nombre}, edad={ud['edad']}, rol={rol}, "
+    f"tema_principal={tema}, etapa={ud['etapa']}, email={'sí' if ud['email'] else 'no'}."
 )
 
-# ...
-# dentro de on_text(m), justo donde llamamos a GPT:
-texto_de_usuario = (metro.texto o "").banda()
-#capamos entradas gigantes para evitar cortes
-si len(texto_de_usuario) > 1000:
-    texto_de_usuario = texto_de_usuario[:1000] + "…"
+# 2) Texto del usuario, limpio y con límite
+user_text = (m.text or "").strip()
+if len(user_text) > 1000:
+    user_text = user_text[:1000] + "…"
 
-
+# 3) Mensajes para el modelo
 messages = [
     {"role": "system", "content": system_prompt},
     {"role": "system", "content": persona_context},
-    {"role": "user", "content": user_text},
+    {"role": "user",   "content": user_text},
 ]
 
 last_err = None
@@ -441,6 +440,7 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
 
