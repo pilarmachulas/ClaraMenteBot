@@ -383,39 +383,32 @@ messages = [
 ]
 
 last_err = None
-for attempt in range(3):
+for attempt in range(3):  # hasta 3 intentos con backoff
     try:
         completion = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=messages,
             temperature=0.6,
             max_tokens=400,
-            timeout=20,
+            timeout=20,  # evita que quede colgado mucho tiempo
         )
         answer = completion.choices[0].message.content.strip()
         bot.reply_to(m, answer)
         break
+
     except Exception as e:
         last_err = e
-        logging.error(f"[GPT ERROR][try {attempt+1}/3] {repr(e)}\n{traceback.format_exc()}")
-        time.sleep(1.5 * (attempt + 1))
-# <- ojo aquí, este else ya no está dentro del try/except, sino del for
+        logging.error(f"[GPT ERROR][try {attempt+1}/3] {repr(e)}")
+        time.sleep(1.5 * (attempt + 1))  # backoff progresivo
+
 else:
+    # <- este else va alineado con el for, no con el try
     lang = (get_ud(m.chat.id).get("idioma") or "ES")
-    bot.reply_to(
-        m,
-        "Tuve un problemita al pensar 🤯. Probemos de nuevo en un momento."
-        if lang == "ES" else
-        "Tive um probleminha para pensar 🤯. Vamos tentar novamente em instantes."
-    )
-        bot.reply_to(m, answer)
-    except Exception:
-        logging.exception("Error generando respuesta con OpenAI")
-        bot.reply_to(m,
-            "Tuve un problemita al pensar 🤯. Probemos de nuevo en un momento."
-            if lang == "ES" else
-            "Tive um probleminha para pensar 🤯. Vamos tentar novamente em instantes."
-        )
+    if lang == "ES":
+        bot.reply_to(m, "Tuve un problemita al pensar 🤯. Probemos de nuevo en un momento.")
+    else:
+        bot.reply_to(m, "Tive um probleminha para pensar 🤯. Vamos tentar novamente em instantes.")
+    return
 
 def advance_onboarding(m, ud):
     lang = ud["idioma"] or "ES"
@@ -442,6 +435,7 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
 
