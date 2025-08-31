@@ -350,22 +350,25 @@ def on_text(m):
             return
 
     # 3) Modo conversacional GPT con contexto
-    try:
-        nombre = ud["nombre"] or ("amiga" if lang == "ES" else "amiga")
-        tema = ud["tema"] or ("ansiedad" if lang == "ES" else "ansiedade")
-        rol = ud["rol"] or ("madre" if lang == "ES" else "mãe")
+try:
+    nombre = ud["nombre"] or ("amiga" if lang == "ES" else "amiga")
+    tema = ud["tema"] or ("ansiedad" if lang == "ES" else "ansiedade")
+    rol = ud["rol"] or ("madre" if lang == "ES" else "mãe")
 
-        system_prompt = SYSTEM_PROMPT_BASE + (
-            "\nResponde **en español**, breve (2–4 frases), tono cálido y claro. Personaliza usando el nombre cuando corresponda."
-            if lang == "ES" else
-            "\nResponda **em português**, curto (2–4 frases), tom caloroso e claro. Personalize usando o nome quando fizer sentido."
-        )
+    system_prompt = SYSTEM_PROMPT_BASE + (
+        "\nResponde **en español**, breve (2–4 frases), tono cálido y claro. Personaliza usando el nombre cuando corresponda."
+        if lang == "ES" else
+        "\nResponda **em português**, curto (2–4 frases), tom caloroso e claro. Personalize usando o nome quando fizer sentido."
+    )
 
-        # 1) Asegura que el nombre del contexto sea el mismo que usas abajo
-persona_context = (
-    f"Contexto de usuaria: nombre={nombre}, edad={ud['edad']}, rol={rol}, "
-    f"tema_principal={tema}, etapa={ud['etapa']}, email={'sí' if ud['email'] else 'no'}."
-)
+    persona_context = (
+        f"Contexto de usuaria: nombre={nombre}, edad={ud['edad']}, rol={rol}, "
+        f"tema_principal={tema}, etapa={ud['etapa']}, email={'sí' if ud['email'] else 'no'}."
+    )
+
+except Exception as e:
+    logging.error(f"Error preparando contexto GPT: {e}")
+    persona_context = "Contexto vacío por error."
 
 # 2) Texto del usuario, limpio y con límite
 user_text = (m.text or "").strip()
@@ -439,6 +442,7 @@ if __name__ == "__main__":
     finally:
         save_db()
         scheduler.shutdown(wait=False)
+
 
 
 
